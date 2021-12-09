@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js" integrity="sha512-pax4MlgXjHEPfCwcJLQhigY7+N8rt6bVvWLFyUMuxShv170X53TRzGPmPkZmGBhk+jikR8WBM4yl7A9WMHHqvg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" integrity="sha512-GQGU0fMMi238uA+a/bdWJfpUGKUkBdgfFdgBm72SUQ6BeyWjoY/ton0tEjH+OSH9iP4Dfh+7HM0I9f5eR0L/4w==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="icon" href="/assets/favicon.png">
+    <title>JukeYout</title>
+</head>
+<body>
+    <div class="container">
+       
+        <div class="mt-5 mb-5">
+                <h1 class="text-center display-4">JukeYout</h1>
+        </div>
+        
+        <div class="row mt-4 mx-auto">
+		    <div class="input-group">
+                <input class="form-control" style="width: 70%" type="text" name="link_youtube" id="link_youtube" required>        
+                <input class="form-control btn-outline-primary" style="width: 80px" type="button" onclick="check_link();" value="Add">
+                <div id="link_youtubeFeedback" class="invalid-feedback"> The specified link is not a valid youtube link. </div>
+            </div>
+        </div>
+
+        <div class="row mt-4 mx-auto">
+            <div class="input-group">
+                <span class="input-group-text">Playing:</span>
+                <span class="input-group-text" id="song_name">nothing </span>
+                <span class="input-group-text" id="time_song">0:00</span>
+                <div class="d-flex progress flex-fill border-top border-bottom", style="height: 100%">
+                	<div class="d-flex progress-bar" id="bar_song" role="progressbar" style="width: 1%" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
+		        </div>
+		        <span class="input-group-text" id="length_song">10:00</span>
+                <button type="button" class="btn btn-light border" onclick="update_song_data()">⟳</button>
+            </div>
+        </div>
+        
+        <div class="row mt-3 center-block mx-2">
+                
+            <button type="button" class="col btn btn-outline-success mx-1" style="width: 59px;" onclick="play();">Play</button>
+            <button type="button" class="col btn btn-outline-primary mx-1" style="width: 70px;" onclick="pause();">Pause</button>
+            <button type="button" class="col btn btn-outline-danger mx-1" style="width: 59px;" onclick="stop();">Stop</button>
+            <button type="button" class="col btn btn-outline-secondary mx-1" style="width: 70px;" onclick="vol_up();">Vol +</button>
+            <button type="button" class="col btn btn-outline-secondary mx-1" style="width: 70px;" onclick="vol_down();">Vol -</button>
+            <button type="button" class="col btn btn-outline-secondary mx-1" style="width: 70px;" onclick="next_s();">Next Song</button>
+            <button type="button" class="col btn btn-outline-secondary mx-1" style="width: 70px;" onclick="prev_s()">Last Song</button>
+        </div>
+        
+        <div class="row mt-4 ">
+            
+            <table class="table table-hover table-bordered mx-auto" style="width: 95%;">
+                <thead class="table-light">
+                    <th class="text-center" style="width: 40px;">n</th>
+                    <th>Name</th>
+                    <th class="text-center" style="width: 100px;">Link</th>
+                </thead>
+                <tbody>
+                    {% for id, name, link in data %}
+                        <tr>
+                            <td class="text-center">{{id}}</td>
+                            <td class="text-break">{{name}}</td>
+                            <td class="text-center"> <a target="_blank" rel="noopener noreferrer" href="{{link}}">{{link}}</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="row">
+            <br>
+            
+        </div>
+    </div>
+    <script>
+        function add_link() { 
+            var link = document.getElementById("link_youtube").value;
+            var formd = new FormData();
+            formd.append("link", link);
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function() {
+                if (this.status == 200) {
+                    window.location.reload(true);
+                }
+            }
+            req.open("POST", "/addlink");
+            req.send(formd);
+        }
+
+        function play() {
+            var x = new XMLHttpRequest();
+            x.onreadystatechange = function() {
+                if (this.status == 200) {
+                    window.location.reload(true);
+                }
+            }
+            x.open("GET","/play");
+            x.send();
+        }
+        
+        function pause() {
+            var x = new XMLHttpRequest();
+            x.open("GET","/pause"); 
+            x.send();
+            pause_counters();
+        }
+        
+        function stop() {
+            var x = new XMLHttpRequest(); 
+            x.open("GET","/stop"); 
+            x.send();
+            stop_counters();
+        }
+        
+        function vol_up() {
+            var x = new XMLHttpRequest(); 
+            x.open("GET","/vol_more"); 
+            x.send();
+        }
+        
+        function vol_down() {
+            var x = new XMLHttpRequest(); 
+            x.open("GET","/vol_less"); 
+            x.send();
+        }
+        
+        function next_s() {
+            var x = new XMLHttpRequest();
+            x.onreadystatechange = function() {
+                if (this.status == 200) {
+                    window.location.reload(true);
+                }
+            }  
+            x.open("GET","/next"); 
+            x.send();
+        }
+        
+        function prev_s() {
+            var x = new XMLHttpRequest(); 
+            x.onreadystatechange = function() {
+                if (this.status == 200) {
+                    window.location.reload(true);
+                }
+            } 
+            x.open("GET","/prev"); 
+            x.send();
+        }
+        
+        function check_link() {
+            var link = document.getElementById("link_youtube").value;
+            if (link !== ""){
+                var re1 = /watch\?v=+[a-zA-Z0-9_-]{11}/;
+                var re2 = /youtu.be\/+[a-zA-Z0-9_-]{11}/;
+                if (re1.exec(link) !== null) {
+                    add_link();
+                    document.getElementById("link_youtube").classList.remove("is-invalid");
+                } else {
+                    if (re2.exec(link) != null) {
+                        add_link();
+                        document.getElementById("link_youtube").classList.remove("is-invalid");
+                    } 
+                    else {
+                        document.getElementById("link_youtube").classList.add("is-invalid");
+                    }
+                }
+            }
+            else {
+                document.getElementById("link_youtube").classList.add("is-invalid");
+            }
+        }
+
+        function get_title() {
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function() {
+                if (this.status == 200) {
+                    document.getElementById("song_name").textContent = this.responseText;  
+                }
+            }
+            req.open("GET", "/title");
+            req.send();
+        }
+
+        var song_time = 0;
+        var song_time_final = 0;
+        var song_time_interval;
+
+        function get_length() {
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function() {
+                if (this.status == 200) {
+                    var n = parseInt(this.responseText);
+                    if (n > 0){
+                        song_time_final = n;
+                        var minutes = Math.floor(n/60);
+                        var seconds = n - minutes*60;
+                        if (seconds < 10){
+                            document.getElementById("length_song").textContent = minutes + ":" + "0" + seconds;
+                        } else {
+                            document.getElementById("length_song").textContent = minutes + ":" + seconds;
+                        }
+                        
+                        document.getElementById("bar_song").setAttribute("aria-valuemax",song_time_final);
+                    }  
+                }
+            }
+            req.open("GET", "/length");
+            req.send();
+        }
+
+        function get_time() {
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function() {
+                if (this.status == 200) {
+                    var n = parseInt(this.responseText);
+                    if (n>0){
+                        song_time = n;
+                        var minutes = Math.floor(n/60);
+                        var seconds = n - minutes*60;
+                        if (seconds < 10){
+                            document.getElementById("time_song").textContent = minutes + ":" + "0" + seconds;
+                        } else {
+                            document.getElementById("time_song").textContent = minutes + ":" + seconds;
+                        }
+                        document.getElementById("bar_song").setAttribute("aria-valuenow",song_time);
+                        document.getElementById("bar_song").style.width = (Math.round(song_time/song_time_final) * 100).toString() + "%";
+                    }  
+                }
+            }
+            req.open("GET", "/time");
+            req.send();
+        }
+
+        function set_time() {
+            song_time++;
+            if (song_time>=song_time_final){
+                clearInterval(song_time_interval);
+                setTimeout(function(){
+                    window.location.reload(true);
+                }, 10000);
+            }
+            var minutes = Math.floor(song_time/60);
+            var seconds = song_time - minutes*60;
+            if (seconds < 10){
+                document.getElementById("time_song").textContent = minutes + ":" + "0" + seconds;
+            } else {
+                document.getElementById("time_song").textContent = minutes + ":" + seconds;
+            }
+            document.getElementById("bar_song").setAttribute("aria-valuenow",song_time);
+            document.getElementById("bar_song").style.width = Math.round(song_time/song_time_final * 100).toString() + "%";
+        }
+
+        // function create_counters(){
+        //     song_time_interval = setInterval(set_time,1000);
+        // }
+
+        function pause_counters(){
+            clearInterval(song_time_interval);
+        }
+
+        function stop_counters(){
+            clearInterval(song_time_interval);
+            song_time = 0;
+        }
+
+        function update_song_data(){
+            setTimeout(get_title, 1000);
+            setTimeout(get_length, 2000);
+            setTimeout(get_time, 3000);
+            setTimeout(
+                function(){
+                    if(song_time>1){
+                        if (song_time_interval == null){
+                            song_time_interval = setInterval(set_time,1000);
+                        } else{
+                        }
+                    }
+                },
+            4000);
+        }
+
+        setTimeout(function(){
+            get_time();
+        }, 7000);
+        setTimeout(function(){
+            if (song_time > 1){
+                update_song_data();
+            }
+        }, 8000);
+        
+    </script>
+
+</body>
+</html>
