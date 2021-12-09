@@ -10,7 +10,7 @@ jukebox = Flask("")
 
 data_jukebox = {"id": [], "name": [], "link": []}
 
-vlc = pexpect.spawn("vlc")  
+vlc = pexpect.spawn("vlc") #vlc instance to play the videos 
 vlc.expect('>')
 
 @atexit.register
@@ -18,7 +18,9 @@ def fin():
     vlc.close()
     print("exiting")
 
-def name_link_youtube(link): 
+def name_link_youtube(link):
+    """getting the name of the youtube video from the twitter card"""
+    
     headers = {"user_agent":"Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3",
                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                "Accept-Encoding": "gzip, deflate, br",
@@ -28,6 +30,8 @@ def name_link_youtube(link):
     return soup.find('head').find(attrs={"name":"twitter:title"})['content']
     
 def youtube_link_clean(link):
+    """gets the id from the video url, deleting other parts (like playlist, time, etc). This function also makes sure that the url is valid"""
+    
     r = re.compile(r"watch\?v=+[a-zA-Z0-9_-]{11}").search(link)
     if r:
         return "https://www.youtube.com/" + r.group()
@@ -41,24 +45,28 @@ def youtube_link_clean(link):
 
 @jukebox.route("/")
 def index():
+    """index controller"""
     return render_template("index.html", data=zip(data_jukebox["id"],data_jukebox["name"],data_jukebox["link"]))
 
 @jukebox.route("/addlink", methods=["POST"])
 def addlink():
+    """post controller of the addlink function"""
     link = youtube_link_clean(request.form["link"])
     if link:
         id_item = 1
-        if len(data_jukebox['id']) > 0: 
-            id_item = data_jukebox['id'][-1] + 1
+        if len(data_jukebox['id']) > 0:             # if there was already videos in the list 
+            id_item = data_jukebox['id'][-1] + 1    # the id of the video to be added will be equal to the id of the last video plus one
         data_jukebox["id"].append(id_item)
         data_jukebox["name"].append(name_link_youtube(link))
         data_jukebox["link"].append(link)
-        l = "enqueue " + link 
+        l = "enqueue " + link # sends this command to the vlc instance 
         vlc.sendline(l)
         vlc.expect('>')
         return Response(status=200)
     else:
         return Response(status=400) 
+
+# the following functions sends commands to the vlc instance 
 
 @jukebox.route("/play")
 def play():
@@ -105,6 +113,7 @@ def prev():
 
 @jukebox.route("/time")
 def get_time():
+    """gets how much time has passed from the video"""
     vlc.sendline("get_time")
     vlc.expect('>')
     tempt = vlc.before.decode('utf-8', 'ignore').partition("get_time")[-1].strip()
@@ -114,6 +123,7 @@ def get_time():
 
 @jukebox.route("/title")
 def get_title():
+    """gets the title of the video"""
     vlc.sendline("get_title")
     vlc.expect('>')
     tempt = vlc.before.decode('utf-8', 'ignore').partition("get_title")[-1].strip()
@@ -123,6 +133,7 @@ def get_title():
 
 @jukebox.route("/length")
 def get_length():
+    """gets the length of the video"""
     vlc.sendline("get_length")
     vlc.expect('>')
     tempt = vlc.before.decode('utf-8', 'ignore').partition("get_length")[-1].strip()
@@ -130,6 +141,8 @@ def get_length():
     response.mime_type = "text/plain"
     return response
 
+
+#starts the flask server
 jukebox.run(host="0.0.0.0", port=8080)
 
 
