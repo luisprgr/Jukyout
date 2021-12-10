@@ -7,7 +7,6 @@ import re
 
 jukebox = Flask("")
 
-
 data_jukebox = {"id": [], "name": [], "link": []}
 
 vlc = pexpect.spawn("vlc") #vlc instance to play the videos 
@@ -110,7 +109,6 @@ def prev():
     vlc.expect('>')
     return Response(status=200)
 
-
 @jukebox.route("/time")
 def get_time():
     """gets how much time has passed from the video"""
@@ -144,6 +142,3 @@ def get_length():
 
 #starts the flask server
 jukebox.run(host="0.0.0.0", port=8080)
-
-
-
