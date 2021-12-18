@@ -9,7 +9,7 @@ jukebox = Flask("")
 
 data_jukebox = {"id": [], "name": [], "link": []}
 
-vlc = pexpect.spawn("vlc") #vlc instance to play the videos 
+vlc = pexpect.spawn("vlc --intf=lua --no-video --vout=none") #vlc instance to play the videos 
 vlc.expect('>')
 
 @atexit.register
