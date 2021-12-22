@@ -55,10 +55,26 @@ In the project folder
 
 - Expose the raspberry pi pulseaudio socket to the docker container in `/home/jukebox/pulse/socket`
 
-### installation
+### Installation
 
 ```shell
 docker run -p 8080:8080 -v /run/user/$UID/pulse/native:/home/jukebox/pulse/socket -d luisprgr/jukyout:latest
+```
+
+### Using Docker-Compose 
+
+You can create a docker-compose.yml like the following example:
+
+```shell
+version: "3.3"
+services:
+  jukyout:
+    image: luisprgr/jukyout
+    container_name: jukyout
+    volumes:
+      - /run/user/$UID/pulse/native:/home/jukebox/pulse/socket
+    ports:
+      - 8080:8080
 ```
 
 ## License
